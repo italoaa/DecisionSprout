@@ -5,10 +5,10 @@
 #include "dataset.h"
 #include "utils.h"
 
-const char *filename = "./data/Iris.csv";
+char *filename = "./data/Iris.csv";
 
 int main() {
   DataSet *ds = loadCsv(filename);
-  displayDataSet(ds, 3);
+  displayDataSet(ds, 25);
   return 0;
 }

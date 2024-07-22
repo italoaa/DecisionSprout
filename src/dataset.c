@@ -22,14 +22,6 @@ void displayDataSet(DataSet *ds, int samples) {
   }
 }
 
-Value makeValue(DataType type, Data data) {
-  Value value;
-  value.type = type;
-  value.sampleID = -1; // not set yet
-  value.data = data;
-  return value;
-}
-
 void displayHeader(DataSet *ds) {
   printf("[");
   for (int i = 0; i < ds->width; i++) {
@@ -85,7 +77,7 @@ void *insertValue(DataSet *ds, Value value){
   // Insert value to the last sample
   struct Sample *sample = ds->tail;
 
-  // Check to see if we are reading the target
+  // print the sample id
   value.sampleID = sample->id;
   sample->features[ds->index] = value;
   ds->index++;

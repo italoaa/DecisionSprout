@@ -37,8 +37,6 @@ typedef struct DataSet {
 
 DataSet *buildDS();
 
-Value makeValue(DataType type, Data data);
-
 void displayDataSet(DataSet *ds, int samples);
 
 void displayHeader(DataSet *ds);

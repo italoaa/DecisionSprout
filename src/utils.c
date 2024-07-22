@@ -30,7 +30,11 @@ void cb(void *s, size_t len, void *user_data) {
     } else {
       data.f = atof(str);
     }
-    insertValue(ds, makeValue(type, data));
+    Value value;
+    value.type = type;
+    value.data = data;
+    value.sampleID = -1;
+    insertValue(ds, value);
   }
 }
 
