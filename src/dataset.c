@@ -22,6 +22,14 @@ void displayDataSet(DataSet *ds, int samples) {
   }
 }
 
+Value makeValue(DataType type, Data data) {
+  Value value;
+  value.type = type;
+  value.sampleID = -1; // not set yet
+  value.data = data;
+  return value;
+}
+
 void displayHeader(DataSet *ds) {
   printf("[");
   for (int i = 0; i < ds->width; i++) {
@@ -31,11 +39,16 @@ void displayHeader(DataSet *ds) {
 }
 
 void displaySample(DataSet *ds, Sample *sample) {
-  printf("[");
-  for (int i = 0; i < ds->width - 1; i++) {
-    printf("%f, ", sample->features[i]);
+  printf("%d [", sample->id);
+  for (int i = 0; i < ds->width; i++) {
+    Value value = sample->features[i];
+    if (value.type == FLOAT) {
+      printf("%f, ", value.data.f);
+    } else {
+      printf("%s, ", value.data.s);
+    }
   }
-  printf("%s]\n", sample->class);
+  printf("]\n");
 }
 
 Sample *addSample(DataSet *ds){
@@ -50,6 +63,7 @@ Sample *addSample(DataSet *ds){
     ds->tail = sample;
   }
 
+  sample->id = ds->height;
   ds->height++;
   ds->index = 0;
   return sample;
@@ -62,7 +76,7 @@ void *insertHeader(DataSet *ds, char *header){
   return NULL;
 };
 
-void *insertValue(DataSet *ds, float value, char *class){
+void *insertValue(DataSet *ds, Value value){
   // Class represents the value in string form
   // we later use the index to determine
   // if we are reading the target
@@ -72,11 +86,52 @@ void *insertValue(DataSet *ds, float value, char *class){
   struct Sample *sample = ds->tail;
 
   // Check to see if we are reading the target
-  if (ds->index == ds->width - 1) {
-    sample->class = class;
-  } else {
-    sample->features[ds->index] = value;
-  }
+  value.sampleID = sample->id;
+  sample->features[ds->index] = value;
   ds->index++;
   return NULL;
 };
+
+// ==================== TABLES ====================
+
+Table *buildTableFromDS(DataSet *ds){
+  Table *table = allocTable();
+
+  table->height = ds->height;
+  table->width = ds->width; // includes the target
+
+  // Allocate memory for the data matrix
+  // NOTE: could be improved with contiguous memory allocation
+  table->data = (Value ***)malloc(table->width * sizeof(Value **));
+
+  // Width
+  for (int i = 0; i < table->width; i++) {
+    // Height of the table
+    table->data[i] = (Value **)malloc(table->height * sizeof(Value *));
+  }
+
+  // Populate the data matrix
+  Sample *sample = ds->sample;
+  for (int i = 0; i < table->height; i++) {
+    for (int j = 0; j < table->width; j++) {
+      table->data[j][i] = &sample->features[j];
+    }
+    sample = sample->next;
+  }
+  
+  // Copy the features
+  for (int i = 0; i < table->width; i++) {
+    table->features[i] = ds->features[i];
+  }
+
+  return table;
+};
+
+Table *allocTable() {
+  Table *table = (Table *)malloc(sizeof(Table));
+  table->height = 0;
+  table->width = 0;
+  table->data = NULL;
+  table->features[0] = NULL;
+  return table;
+}

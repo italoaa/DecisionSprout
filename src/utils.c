@@ -20,9 +20,17 @@ void cb(void *s, size_t len, void *user_data) {
     insertHeader(ds, str);
   }
   else {
+    Data data;
+    DataType type = FLOAT;
     // Otherwise insert a value
-    float value = atof(str);
-    insertValue(ds, value, str);
+    if (ds->index == ds->width - 1) {
+      // Its the last value, so its the class
+      data.s = str;
+      type = STRING;
+    } else {
+      data.f = atof(str);
+    }
+    insertValue(ds, makeValue(type, data));
   }
 }
 
