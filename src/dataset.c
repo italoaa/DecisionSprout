@@ -9,32 +9,47 @@ DataSet *buildDS(){
   ds->height = 0;
   ds->width = 0;
   ds->sample = NULL;
+  ds->tail = NULL;
   ds->features[0] = NULL;
   return ds;
 };
 
-void *displaySample(DataSet *ds) {
-  if (ds->sample == NULL) {
-    // Display the header
-    printf("[");
-    for (int i = 0; i < ds->width; i++) {
-      printf("%s, ", ds->features[i]);
-    }
-    printf("]\n");
-    return NULL;
+void displayDataSet(DataSet *ds, int samples) {
+  Sample *sample = ds->sample;
+  for (int i = 0; i < samples; i++) {
+    displaySample(ds, sample);
+    sample = sample->next;
   }
+}
+
+void displayHeader(DataSet *ds) {
+  printf("[");
+  for (int i = 0; i < ds->width; i++) {
+    printf("%s, ", ds->features[i]);
+  }
+  printf("]\n");
+}
+
+void displaySample(DataSet *ds, Sample *sample) {
   printf("[");
   for (int i = 0; i < ds->width - 1; i++) {
-    printf("%f, ", ds->sample->features[i]);
+    printf("%f, ", sample->features[i]);
   }
-  printf("%s]\n", ds->sample->class);
+  printf("%s]\n", sample->class);
 }
 
 Sample *addSample(DataSet *ds){
   /* printf("Adding sample\n"); */
   struct Sample *sample = (struct Sample *)malloc(sizeof(struct Sample));
-  sample->next = ds->sample;
-  ds->sample = sample;
+
+  if (ds->height == 0) {
+    ds->sample = sample;
+    ds->tail = sample;
+  } else {
+    ds->tail->next = sample;
+    ds->tail = sample;
+  }
+
   ds->height++;
   ds->index = 0;
   return sample;
@@ -53,7 +68,8 @@ void *insertValue(DataSet *ds, float value, char *class){
   // if we are reading the target
   /* printf("Inserting value: %s\n", class); */
 
-  struct Sample *sample = ds->sample;
+  // Insert value to the last sample
+  struct Sample *sample = ds->tail;
 
   // Check to see if we are reading the target
   if (ds->index == ds->width - 1) {

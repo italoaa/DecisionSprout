@@ -7,10 +7,8 @@
 
 const char *filename = "./data/Iris.csv";
 
-DataSet *ds;
-
-
 int main() {
   DataSet *ds = loadCsv(filename);
+  displayDataSet(ds, 3);
   return 0;
 }

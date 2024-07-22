@@ -29,9 +29,9 @@ void cb(void *s, size_t len, void *user_data) {
 // Call back at the end of the sample
 void cb2(int c, void *user_data) {
   /* printf("End of record\n"); */
-
+  (void)user_data; // Suppress unused parameter warning
+  (void)c;
   // Create a new sample
-  displaySample(ds);
   addSample(ds);
 }
 

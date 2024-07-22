@@ -14,12 +14,17 @@ typedef struct DataSet {
   int height; // Number of samples
   int width; // Number of features
   int index; // Current index for parsing
+  struct Sample *tail;
   struct Sample *sample;
 } DataSet;
 
 DataSet *buildDS();
 
-void *displaySample(DataSet *ds);
+void displayDataSet(DataSet *ds, int samples);
+
+void displayHeader(DataSet *ds);
+
+void displaySample(DataSet *ds, Sample *sample);
 
 Sample *addSample(DataSet *ds);
 
