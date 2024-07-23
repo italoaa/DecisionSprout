@@ -11,10 +11,16 @@ DataSet *buildDS(){
   ds->sample = NULL;
   ds->tail = NULL;
   ds->features[0] = NULL;
+  ds->memory[0] = NULL;
   return ds;
 };
 
 void displayDataSet(DataSet *ds, int samples) {
+  if (samples > ds->height) {
+    // Error
+    printf("Error: Not enough samples\n");
+    return;
+  }
   Sample *sample = ds->sample;
   for (int i = 0; i < samples; i++) {
     displaySample(ds, sample);
@@ -43,6 +49,13 @@ void displaySample(DataSet *ds, Sample *sample) {
   printf("]\n");
 }
 
+void cleanMem(DataSet *ds) {
+  for (int i = 0; i < ds->height; i++) {
+    // Set to null
+    ds->memory[i] = NULL;
+  }
+}
+
 Sample *addSample(DataSet *ds){
   /* printf("Adding sample\n"); */
   struct Sample *sample = (struct Sample *)malloc(sizeof(struct Sample));
@@ -60,6 +73,24 @@ Sample *addSample(DataSet *ds){
   ds->index = 0;
   return sample;
 };
+
+Sample *getSample(DataSet *ds, int id) {
+  // Check if the sample is in memory
+  if (ds->memory[id] != NULL) {
+    // Return the sample from memory if it exists
+    /* printf("Returning from memory id: %d\n", id); */
+    return ds->memory[id];
+  }
+  Sample *sample = ds->sample;
+  for (int i = 0; i < id; i++) {
+    sample = sample->next;
+
+  }
+  /* printf("Returning from sample, saving id %d to mem\n", id); */
+  // Save the sample in memory
+  ds->memory[id] = sample;
+  return sample;
+}
 
 void *insertHeader(DataSet *ds, char *header){
   /* printf("Inserting header: %s\n", header); */
@@ -86,6 +117,8 @@ void *insertValue(DataSet *ds, Value value){
 
 // ==================== TABLES ====================
 
+// Tables are implementations of a dataset with a matrix for faster access
+// ordered by columns instead of rows
 Table *buildTableFromDS(DataSet *ds){
   Table *table = allocTable();
 
@@ -118,6 +151,59 @@ Table *buildTableFromDS(DataSet *ds){
 
   return table;
 };
+
+// Ids is the full list of ids for the table
+// Height is the number of ids
+Table *buildTableFromIds(DataSet *ds, int ids[], int height) {
+  Table *table = allocTable();
+
+  table->height = height;
+  table->width = ds->width; // includes the target
+
+  // Allocate memory for the data matrix
+  // NOTE: could be improved with contiguous memory allocation
+  table->data = (Value ***)malloc(table->width * sizeof(Value **));
+
+  // Width
+  for (int i = 0; i < table->width; i++) {
+    // Height of the table
+    table->data[i] = (Value **)malloc(table->height * sizeof(Value *));
+  }
+
+  // Populate the data matrix
+  for (int i = 0; i < height; i++) {
+    Sample *sample = getSample(ds, ids[i]);
+    for (int j = 0; j < table->width; j++) {
+      table->data[j][i] = &sample->features[j];
+    }
+  }
+	
+  // Copy the features
+  for (int i = 0; i < table->width; i++) {
+    table->features[i] = ds->features[i];
+  }
+
+  return table;
+} 
+
+void displayTable(Table *table, int samples) {
+  if (samples > table->height) {
+    // Error
+    printf("Error: Not enough samples\n");
+    return;
+  }
+  for (int i = 0; i < samples; i++) {
+    for (int j = 0; j < table->width; j++) {
+      Value *value = table->data[j][i];
+      if (value->type == FLOAT) {
+	printf("%f, ", value->data.f);
+      } else {
+	printf("%s, ", value->data.s);
+      }
+    }
+    printf("\n");
+  }
+}
 
 Table *allocTable() {
   Table *table = (Table *)malloc(sizeof(Table));

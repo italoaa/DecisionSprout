@@ -33,6 +33,7 @@ typedef struct DataSet {
   int index; // Current index for parsing
   struct Sample *tail;
   struct Sample *sample;
+  struct Sample *memory[];
 } DataSet;
 
 DataSet *buildDS();
@@ -44,6 +45,10 @@ void displayHeader(DataSet *ds);
 void displaySample(DataSet *ds, Sample *sample);
 
 Sample *addSample(DataSet *ds);
+
+void cleanMem(DataSet *ds);
+
+Sample *getSample(DataSet *ds, int id);
 
 void *insertHeader(DataSet *ds, char *header);
 
@@ -62,8 +67,12 @@ typedef struct Table {
   int width; // Number of features
 } Table;
 
+Table *buildTableFromDS(DataSet *ds);
 
-Table *buildTable(DataSet *ds);
+Table *buildTableFromIds(DataSet *ds, int ids[], int height);
+
+void displayTable(Table *table, int samples);
+
 
 Table *allocTable();
 

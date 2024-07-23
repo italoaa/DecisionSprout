@@ -73,5 +73,7 @@ DataSet *loadCsv(char *filename) {
   csv_free(&p);
   fclose(fp);
 
+  cleanMem(ds);
+
   return ds;
 }
