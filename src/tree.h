@@ -19,12 +19,15 @@ typedef struct TreeNode {
 } TreeNode;
 
 
+TreeNode *allocNode(Table *table);
 
 int compare_vaules_float(const void *a, const void*b);
 
+float *avgFeature(Value **sortedValues, int samples);
+
 Value **sortFeature(Table *table, int feature);
 
-Split *best_split(Table *table, int feature);
+Split *find_best_split(Table *table, int feature);
 
 TreeNode *decide(Table *table);
 

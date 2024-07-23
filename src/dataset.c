@@ -267,6 +267,43 @@ Table *buildTableFromIds(DataSet *ds, int ids[], int height) {
   return table;
 } 
 
+// Build table from ids with another table
+Table *buildTableFromIdsTable(Table *table, int ids[], int height) {
+  Table *newTable = allocTable();
+
+  newTable->height = height;
+  newTable->width = table->width; // includes the target
+  newTable->target = table->target;
+
+  // Allocate memory for the data matrix
+  // NOTE: could be improved with contiguous memory allocation
+  newTable->data = (Value ***)malloc(newTable->width * sizeof(Value **));
+
+  // Width
+  for (int i = 0; i < newTable->width; i++) {
+    // Height of the table
+    newTable->data[i] = (Value **)malloc(newTable->height * sizeof(Value *));
+  }
+
+  // loop over the ids
+  for (int i = 0; i < height; i++) {
+    // loop over all the columns
+    // building a row with the id
+    for (int j = 0; j < newTable->width; j++) {
+      // use the height as a index for id
+      // bc height >= ids
+      newTable->data[j][i] = table->data[j][ids[i]];
+    }
+  }
+	
+  // Copy the features
+  for (int i = 0; i < newTable->width; i++) {
+    newTable->features[i] = table->features[i];
+  }
+
+  return newTable;
+}
+
 void displayTable(Table *table, int samples) {
   if (samples > table->height) {
     // Error
@@ -295,6 +332,7 @@ void encode_Labels(Table *table, int id) {
     for (int j = 0; j < table->target->unique; j++) {
       if (strcmp(label->data.s, table->target->classes[j]) == 0) {
 	label->data.f = j;
+	label->type = FLOAT;
 	break;
       }
     }

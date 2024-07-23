@@ -14,7 +14,7 @@ int main() {
   displayHeader(ds);
   Table *table = buildTableFromDS(ds);
   encode_Labels(table, table->target->id);
-  // Not working sort
+
   TreeNode *tree = decide(table);
   return 0;
 }
