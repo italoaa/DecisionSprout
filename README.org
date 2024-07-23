@@ -1,0 +1,5 @@
+#+title: Decision Sprout
+
+This is a work in progress.
+
+This project is aimed to learn the core topics in machine learning and decision trees. Any contributions for improvement are welcome.
