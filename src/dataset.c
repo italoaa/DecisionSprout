@@ -2,6 +2,7 @@
 #include <stddef.h> // Ensure this is included
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "dataset.h"
 
 DataSet *buildDS(){
@@ -54,6 +55,77 @@ void cleanMem(DataSet *ds) {
     // Set to null
     ds->memory[i] = NULL;
   }
+}
+
+void unique(DataSet *ds, int feature) {
+  // Find if its a string or float
+  int type = STRING;
+  if (ds->sample->features[feature].type == FLOAT) {
+    type = FLOAT;
+  }
+
+  // Loop over the feature and count the unique values
+  Target *target = ds->target;
+  Sample *sample = ds->sample;
+
+  // BEWARE IT IS EXTREMELY INEFFICIENT
+  // dont die
+  // later we can optimize this
+  printf("Height: %d\n", ds->height);
+  for (int i = 0; i < ds->height; i++) {
+    int found = 0;
+    for (int j = 0; j < i; j++) {
+      if (type == STRING) {
+	char *a = sample->features[feature].data.s;
+	char *b = getSample(ds, j)->features[feature].data.s;
+	// if either is null break
+	if (a == NULL || b == NULL) {
+	  found = 1;
+	  /* printf("Null\n"); */
+	  break;
+	}
+	if (strcmp(a, b) == 0) {
+	  found = 1;
+	  break;
+	}
+      } else {
+	printf("Float\n");
+	// not implementing yet
+	break;
+      }
+    }
+    if (found == 0) {
+      // Add class to the target
+      if (type == STRING) {
+	target->classes[target->unique] = sample->features[feature].data.s;
+	target->unique++;
+      }
+    }
+    if (sample->next == NULL) {
+      break;
+    }
+    sample = sample->next;
+  }
+  printf("Unique classes: %d\n", target->unique);
+  for (int i = 0; i < target->unique; i++) {
+    printf("%s\n", target->classes[i]);
+  }
+}
+
+void setTarget(DataSet *ds, int target) {
+  if (target >= ds->width || target < 0) {
+    // Error
+    printf("Error: Target out of bounds\n");
+    return;
+  }
+  Target *t = (Target *)malloc(sizeof(Target));
+  t->unique = 0;
+  // allocate memory for the classes
+  t->classes = (char **)malloc(ds->height * sizeof(char *));
+  t->id = target;
+  ds->target = t;
+
+  unique(ds, 5); // find unique values
 }
 
 Sample *addSample(DataSet *ds){
@@ -136,6 +208,7 @@ Table *buildTableFromDS(DataSet *ds){
 
   table->height = ds->height;
   table->width = ds->width; // includes the target
+  table->target = ds->target;
 
   // Allocate memory for the data matrix
   // NOTE: could be improved with contiguous memory allocation
@@ -171,6 +244,7 @@ Table *buildTableFromIds(DataSet *ds, int ids[], int height) {
 
   table->height = height;
   table->width = ds->width; // includes the target
+  table->target = ds->target;
 
   // Allocate memory for the data matrix
   // NOTE: could be improved with contiguous memory allocation
