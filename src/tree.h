@@ -24,7 +24,8 @@ int compare_vaules_float(const void *a, const void*b);
 
 Value **sortFeature(Table *table, int feature);
 
-Split *split(Table *table, int feature);
+Split *best_split(Table *table, int feature);
 
+TreeNode *decide(Table *table);
 
 #endif

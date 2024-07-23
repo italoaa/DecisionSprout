@@ -63,7 +63,7 @@ void avgFeature(Value **sortedValues, int samples) {
 // loop over the avgs and make a stump with the avg as threshols
 // Calc GINI for each tree and pick the best
 float calcGini(Table *table, float threshold, int feature) {
-  printf("Calculating GINI for feature %s with threshold %f\n", table->features[feature], threshold);
+  /* printf("Calculating GINI for feature %s with threshold %f\n", table->features[feature], threshold); */
   // Unique # of target classes
   Target *target = table->target;
   int targetID = target->id;
@@ -96,8 +96,8 @@ float calcGini(Table *table, float threshold, int feature) {
   }
  
   // print counts to test
-  printf("Left counts %d\n", totalLeft);
-  printf("Right counts %d\n", totalRight);
+  /* printf("Left counts %d\n", totalLeft); */
+  /* printf("Right counts %d\n", totalRight); */
 
   // Calculate the GINI for the left and right
   float giniLeft = 1.0;
@@ -114,21 +114,27 @@ float calcGini(Table *table, float threshold, int feature) {
   }
 
   // print the GINI's
-  printf("Gini left %f\n", giniLeft);
-  printf("Gini right %f\n", giniRight);
+  /* printf("Gini left %f\n", giniLeft); */
+  /* printf("Gini right %f\n", giniRight); */
 
   // Weighted GINI
   float gini = (totalLeft * giniLeft + totalRight * giniRight) / (totalLeft + totalRight);
 
   // Print the weighted GINI
-  printf("Weighted GINI %f\n", gini);
-  printf("=====================================\n");
+  /* printf("Weighted GINI %f\n", gini); */
+  /* printf("=====================================\n"); */
 
   return gini;
 }
 
-// Split the data
-Split *split(Table *table, int feature) {
+// find the best split for a feature
+Split *best_split(Table *table, int feature) {
+  // if it is target or Id
+  if (feature == table->target->id) {
+    printf("Cannot split on target\n");
+    printf("=====================================\n");
+    return NULL;
+  }
   // Sort the feature
   printf("Splitting on feature %s\n", table->features[feature]);
   Value **thresholds = sortFeature(table, feature);
@@ -163,21 +169,35 @@ Split *split(Table *table, int feature) {
   split->threshold = bestThreshold;
   split->gini = bestGini;
 
+  printf("=====================================\n");
   return split;
 }
 
+// Given a table, decides the best split and returns the root node of the tree
 TreeNode *decide(Table *table) {
-  // Loop over all features
-  /* for (int i = 0; i < table->width; i++) { */
-    // Split the data
-    /* Split *split = split(table, i); */
-  /* } */
+  /* Loop over all features */
+  float bestGini = 1.0;
+  Split *bestSplit = NULL;
 
-  // For now just split on the 3 feature
-  /* Split *split = split(table, 3); */
-  /* printf("Split: %d\n", split->feature); */
-  /* printf("Split: %f\n", split->threshold); */
-  /* printf("Split: %f\n", split->gini); */
+  // NOTE: This is not modular
+  // Start at one because the first is the ID
+  for (int i = 1; i < table->width; i++) {
+    /* Split the data */
+    Split *split = best_split(table, i);
+    if (!split) {
+      continue;
+    }
+    if (split->gini < bestGini) {
+      bestSplit = split;
+      bestGini = split->gini;
+    }
+  }
+
+  // Print the best GINI with the feature and threshold
+  printf("Best GINI %f\n", bestSplit->gini);
+  printf("Best feature %s\n", table->features[bestSplit->feature]);
+  printf("Best threshold %f\n", bestSplit->threshold);
+  printf("=====================================\n");
 
   return NULL;
 }
