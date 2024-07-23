@@ -12,8 +12,9 @@ int main() {
   DataSet *ds = loadCsv(filename);
   setTarget(ds, 5);
   displayHeader(ds);
-  Table *table = buildTableFromIds(ds, (int[]){0, 1, 2, 3}, 4);
+  Table *table = buildTableFromDS(ds);
+  encode_Labels(table, table->target->id);
   // Not working sort
-  /* TreeNode *tree = split(table, 3); */
+  TreeNode *tree = split(table, 3);
   return 0;
 }

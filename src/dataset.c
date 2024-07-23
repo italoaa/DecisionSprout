@@ -71,7 +71,6 @@ void unique(DataSet *ds, int feature) {
   // BEWARE IT IS EXTREMELY INEFFICIENT
   // dont die
   // later we can optimize this
-  printf("Height: %d\n", ds->height);
   for (int i = 0; i < ds->height; i++) {
     int found = 0;
     for (int j = 0; j < i; j++) {
@@ -105,10 +104,6 @@ void unique(DataSet *ds, int feature) {
       break;
     }
     sample = sample->next;
-  }
-  printf("Unique classes: %d\n", target->unique);
-  for (int i = 0; i < target->unique; i++) {
-    printf("%s\n", target->classes[i]);
   }
 }
 
@@ -288,6 +283,21 @@ void displayTable(Table *table, int samples) {
       }
     }
     printf("\n");
+  }
+}
+
+void encode_Labels(Table *table, int id) {
+  // Get the labels
+  Value **labels = table->data[id];
+  // loop over the labels
+  for (int i = 0; i < table->height; i++) {
+    Value *label = labels[i];
+    for (int j = 0; j < table->target->unique; j++) {
+      if (strcmp(label->data.s, table->target->classes[j]) == 0) {
+	label->data.f = j;
+	break;
+      }
+    }
   }
 }
 

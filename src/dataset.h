@@ -86,6 +86,8 @@ Table *buildTableFromIds(DataSet *ds, int ids[], int height);
 
 void displayTable(Table *table, int samples);
 
+void encode_Labels(Table *table, int id);
+
 Table *allocTable();
 
 #endif

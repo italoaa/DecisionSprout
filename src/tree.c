@@ -41,10 +41,6 @@ Value **sortFeature(Table *table, int feature) {
   // Print the sorted values
   printf("Sorted values for feature %s\n", table->features[feature]);
 
-  for (int i = 0; i < samples; i++) {
-    printf("%f\n", sortedValues[i]->data.f);
-  }
-
   return sortedValues;
 }
 
@@ -61,53 +57,116 @@ void avgFeature(Value **sortedValues, int samples) {
   }
 
   // Print the averages
-  printf("Averages\n");
-  for (int i = 0; i < samples - 1; i++) {
-    printf("%f\n", sortedValues[i]->data.f);
-  }
+  printf("Averaged values\n");
 }
 
 // loop over the avgs and make a stump with the avg as threshols
 // Calc GINI for each tree and pick the best
-/* float calcGini(Table *table, float threshold, int feature) { */
-/*   // Unique # of target classes */
+float calcGini(Table *table, float threshold, int feature) {
+  printf("Calculating GINI for feature %s with threshold %f\n", table->features[feature], threshold);
+  // Unique # of target classes
+  Target *target = table->target;
+  int targetID = target->id;
 
-/*   // Each index is a class */
-/*   // Count the number of samples for that class */
-/*   // in left and right */
-/*   int leftClassCounts[numClasses]; */
-/*   int rightClassCounts[numClasses]; */
+  // Each index is a class
+  // Count the number of samples for that class
+  // in left and right
+  int leftClassCounts[target->unique];
+  int rightClassCounts[target->unique];
 
-/*   int totalLeft = 0, totalRight = 0; */
+  // Initialize the counts
+  for (int i = 0; i < target->unique; i++) {
+    leftClassCounts[i] = 0;
+    rightClassCounts[i] = 0;
+  }
 
-/*   // Loop over the samples */
-/*   for (int i = 0; i < table->height; i++) { */
-/*     // Check if the sample is less than the threshold */
-/*     if (table->data[feature][i]->data.f < threshold) { */
-/*       // Increment the count for the class */
-/*       /\* leftClassCounts[]++; *\/ */
-/*       totalLeft++; */
-/*     } else { */
-/*       /\* rightClassCounts[(int)table->target[i]->data.f]++; *\/ */
-/*       totalRight++; */
-/*     } */
-/*   } */
+  int totalLeft = 0, totalRight = 0;
+
+  // Loop over the samples
+  for (int i = 0; i < table->height; i++) {
+    // Check if the sample is less than the threshold
+    if (table->data[feature][i]->data.f < threshold) {
+      // Increment the count for the class
+      leftClassCounts[(int)table->data[targetID][i]->data.f]++;
+      totalLeft++;
+    } else {
+      rightClassCounts[(int)table->data[targetID][i]->data.f]++;
+      totalRight++;
+    }
+  }
  
-/*   return 0.0; */
-/* } */
+  // print counts to test
+  printf("Left counts %d\n", totalLeft);
+  printf("Right counts %d\n", totalRight);
+
+  // Calculate the GINI for the left and right
+  float giniLeft = 1.0;
+  float giniRight = 1.0;
+  // For each class
+  for (int i = 0; i < target->unique; i++) {
+    // Calculate the proportion of the class for each side
+    float pLeft = (float)leftClassCounts[i] / totalLeft;
+    float pRight = (float)rightClassCounts[i] / totalRight;
+
+    // Update GINI
+    giniLeft -= pLeft * pLeft;
+    giniRight -= pRight * pRight;
+  }
+
+  // print the GINI's
+  printf("Gini left %f\n", giniLeft);
+  printf("Gini right %f\n", giniRight);
+
+  // Weighted GINI
+  float gini = (totalLeft * giniLeft + totalRight * giniRight) / (totalLeft + totalRight);
+
+  // Print the weighted GINI
+  printf("Weighted GINI %f\n", gini);
+  printf("=====================================\n");
+
+  return gini;
+}
 
 // Split the data
 Split *split(Table *table, int feature) {
   // Sort the feature
+  printf("Splitting on feature %s\n", table->features[feature]);
   Value **thresholds = sortFeature(table, feature);
 
   // Calculate the averages
   avgFeature(thresholds, table->height);
 
-  return NULL;
+  // Calculate the GINI for each threshold
+  float bestGini = 1.0;
+  float bestThreshold = 0.0;
+  // NOTE: avgs reduce the number of thresholds by 1. (height - 1)
+  for (int i = 0; i < table->height - 1; i++) {
+    float threshold = thresholds[i]->data.f;
+    float gini = calcGini(table, threshold, feature);
+    if (gini < bestGini) {
+      bestGini = gini;
+      bestThreshold = threshold;
+    }
+  }
+
+  // Print the best threshold
+  printf("Best threshold %f\n", bestThreshold);
+  printf("Best GINI %f\n", bestGini);
+
+  Split *split = (Split *)malloc(sizeof(Split));
+  if (!split) {
+    perror("Failed to allocate memory for split");
+    exit(EXIT_FAILURE);
+  }
+
+  split->feature = feature;
+  split->threshold = bestThreshold;
+  split->gini = bestGini;
+
+  return split;
 }
 
-/* TreeNode *decide(Table *table) { */
+TreeNode *decide(Table *table) {
   // Loop over all features
   /* for (int i = 0; i < table->width; i++) { */
     // Split the data
@@ -120,5 +179,5 @@ Split *split(Table *table, int feature) {
   /* printf("Split: %f\n", split->threshold); */
   /* printf("Split: %f\n", split->gini); */
 
-  /* return NULL; */
-/* } */
+  return NULL;
+}
