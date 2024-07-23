@@ -74,6 +74,7 @@ DataSet *loadCsv(char *filename) {
   fclose(fp);
 
   cleanMem(ds);
+  removeTail(ds);
 
   return ds;
 }

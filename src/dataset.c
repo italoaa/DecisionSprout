@@ -74,6 +74,18 @@ Sample *addSample(DataSet *ds){
   return sample;
 };
 
+void removeTail(DataSet *ds) {
+  // Remove the tail
+  Sample *new_tail = getSample(ds, ds->height - 2);
+  Sample *tail = new_tail->next;
+  // Free from the memory
+  ds->memory[ds->height - 1] = NULL;
+  free(tail);
+  new_tail->next = NULL;
+  ds->tail = new_tail;
+  ds->height--;
+}
+
 Sample *getSample(DataSet *ds, int id) {
   // Check if the sample is in memory
   if (ds->memory[id] != NULL) {
