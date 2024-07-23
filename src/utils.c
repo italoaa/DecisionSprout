@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "dataset.h"
+#include "tree.h"
 
 DataSet *ds;
 
@@ -78,3 +79,5 @@ DataSet *loadCsv(char *filename) {
 
   return ds;
 }
+
+// VISUALIZATION

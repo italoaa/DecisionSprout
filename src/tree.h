@@ -29,6 +29,6 @@ Value **sortFeature(Table *table, int feature);
 
 Split *find_best_split(Table *table, int feature);
 
-TreeNode *decide(Table *table);
+TreeNode *decide(TreeNode *root);
 
 #endif

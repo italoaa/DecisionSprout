@@ -39,8 +39,6 @@ Value **sortFeature(Table *table, int feature) {
   qsort(sortedValues, samples, sizeof(Value *), compare_values_float);
 
   // Print the sorted values
-  printf("Sorted values\n");
-  displayTable(table, table->height);
   return sortedValues;
 }
 
@@ -182,7 +180,9 @@ Split *find_best_split(Table *table, int feature) {
 }
 
 // Splits table based on the split
-TreeNode *split(Table *table, Split *split) {
+TreeNode *split(TreeNode *node) {
+  Table *table = node->table;
+  Split *split = node->split;
   int left[table->height];
   int right[table->height];
 
@@ -210,17 +210,21 @@ TreeNode *split(Table *table, Split *split) {
   Table *leftTable = buildTableFromIdsTable(table, left, lcounter);
   Table *rightTable = buildTableFromIdsTable(table, right, rcounter);
 
+  printf("=====================================\n");
+  printf("Left table\n");
+  displayTable(leftTable, leftTable->height);
+
+  printf("=====================================\n");
+  printf("Right table\n");
+  displayTable(rightTable, rightTable->height);
 
   // Allocate the left and right nodes
   TreeNode *leftNode = allocNode(leftTable);
   TreeNode *rightNode = allocNode(rightTable);
 
-  TreeNode *root = allocNode(table);
-  root->split = split;
-  root->left = leftNode;
-  root->right = rightNode;
-
-  return root;
+  // Assign the left and right nodes
+  node->left = leftNode;
+  node->right = rightNode;
 }
 
 TreeNode *allocNode(Table *table) {
@@ -239,7 +243,12 @@ TreeNode *allocNode(Table *table) {
 }
 
 // Given a table, decides the best split and returns the root node of the tree
-TreeNode *decide(Table *table) {
+TreeNode *decide(TreeNode *root) {
+  if (root->table->height < 5) {
+    // Recursion base case
+    return root;
+  }
+  Table *table = root->table;
   /* Loop over all features */
   float bestGini = 1.0;
   Split *bestSplit = NULL;
@@ -258,8 +267,15 @@ TreeNode *decide(Table *table) {
     }
   }
 
-  // Split the table
-  TreeNode *root = split(table, bestSplit);
+  // Set the split
+  root->split = bestSplit;
 
-  return NULL;
+  // Split the node on the best split
+  split(root);
+
+  // Recurse
+  root->left = decide(root->left);
+  root->right = decide(root->right);
+
+  return root;
 }
