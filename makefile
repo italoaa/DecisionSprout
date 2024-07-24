@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c99 -g # -fsanitize=address
 LDFLAGS = -lcsv
 SRC_DIR = src
 BUILD_DIR = build

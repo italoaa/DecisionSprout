@@ -62,6 +62,7 @@ float *avgFeature(Value **sortedValues, int samples) {
 
   // Print the averages
   /* printf("Averaged values\n"); */
+  free(sortedValues);
   return averages;
 }
 
@@ -176,14 +177,16 @@ Split *find_best_split(Table *table, int feature) {
   split->gini = bestGini;
 
   /* printf("=====================================\n"); */
+  free(averages);
   return split;
 }
 
 // Splits table based on the split
-TreeNode *split(TreeNode *node) {
+void split(TreeNode *node) {
   Table *table = node->table;
   Split *split = node->split;
   int left[table->height];
+
   int right[table->height];
 
   // initialize the left and right
@@ -206,17 +209,21 @@ TreeNode *split(TreeNode *node) {
     }
   }
 
+  /* printf("\n"); */
+  /* printf("=====================================\n"); */
+  /* printf("Splitting on feature %s with threshold %f\n", table->features[split->feature], split->threshold); */
+
   // Build Table 
   Table *leftTable = buildTableFromIdsTable(table, left, lcounter);
   Table *rightTable = buildTableFromIdsTable(table, right, rcounter);
 
-  printf("=====================================\n");
-  printf("Left table\n");
-  displayTable(leftTable, leftTable->height);
+  /* printf("=====================================\n"); */
+  /* printf("Left table\n"); */
+  /* displayTable(leftTable, leftTable->height); */
 
-  printf("=====================================\n");
-  printf("Right table\n");
-  displayTable(rightTable, rightTable->height);
+  /* printf("=====================================\n"); */
+  /* printf("Right table\n"); */
+  /* displayTable(rightTable, rightTable->height); */
 
   // Allocate the left and right nodes
   TreeNode *leftNode = allocNode(leftTable);
@@ -244,10 +251,11 @@ TreeNode *allocNode(Table *table) {
 
 // Given a table, decides the best split and returns the root node of the tree
 TreeNode *decide(TreeNode *root) {
-  if (root->table->height < 5) {
+  if (root->table->height < 2) {
     // Recursion base case
     return root;
   }
+
   Table *table = root->table;
   /* Loop over all features */
   float bestGini = 1.0;
@@ -264,7 +272,16 @@ TreeNode *decide(TreeNode *root) {
     if (split->gini < bestGini) {
       bestSplit = split;
       bestGini = split->gini;
+    } else {
+      free(split);
     }
+  }
+
+  // If there is no split
+  if (bestSplit == NULL) {
+    /* printf("No split\n"); */
+    /* displayTable(table, table->height); */
+    return root;
   }
 
   // Set the split
@@ -278,4 +295,19 @@ TreeNode *decide(TreeNode *root) {
   root->right = decide(root->right);
 
   return root;
+}
+
+void freeTree(TreeNode *node) {
+  // Recursively free the tree
+  if (node->left) {
+    freeTree(node->left);
+  }
+  if (node->right) {
+    freeTree(node->right);
+  }
+  if (node->split) {
+    free(node->split);
+  }
+  freeTable(node->table);
+  free(node);
 }

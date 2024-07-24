@@ -12,7 +12,7 @@ DataSet *buildDS(){
   ds->sample = NULL;
   ds->tail = NULL;
   ds->features[0] = NULL;
-  ds->memory[0] = NULL;
+  /* ds->memory[0] = NULL; */
   return ds;
 };
 
@@ -50,13 +50,16 @@ void displaySample(DataSet *ds, Sample *sample) {
   printf("]\n");
 }
 
-void cleanMem(DataSet *ds) {
+void setUpMem(DataSet *ds) {
+  // Allocate memory
+  ds->memory = (Sample **)malloc(ds->height * sizeof(Sample *));
   for (int i = 0; i < ds->height; i++) {
     // Set to null
     ds->memory[i] = NULL;
   }
 }
 
+char *strdup(const char *s); // adding the signature to avoid warnings
 void unique(DataSet *ds, int feature) {
   // Find if its a string or float
   int type = STRING;
@@ -96,7 +99,9 @@ void unique(DataSet *ds, int feature) {
     if (found == 0) {
       // Add class to the target
       if (type == STRING) {
-	target->classes[target->unique] = sample->features[feature].data.s;
+	// use strdup to copy the string
+	target->classes[target->unique] = strdup(sample->features[feature].data.s);
+	/* target->classes[target->unique] = sample->features[feature].data.s; */
 	target->unique++;
       }
     }
@@ -191,6 +196,40 @@ void *insertValue(DataSet *ds, Value value){
   value.sampleID = sample->id;
   sample->features[ds->index] = value;
   ds->index++;
+  return NULL;
+};
+
+void *freeDS(DataSet *ds){
+  // Free the memory
+  Sample *sample = ds->sample;
+  Sample *next = NULL;
+  while (sample != NULL) {
+    next = sample->next;
+    // Free the Value string
+    for (int i = 0; i < ds->width; i++) {
+      if (sample->features[i].type == STRING) {
+	free(sample->features[i].data.s);
+      }
+    }
+    
+    free(sample);
+    sample = next;
+  }
+  // free the features
+  for (int i = 0; i < ds->width; i++) {
+    free(ds->features[i]);
+  }
+
+  // Free the memory
+  free(ds->memory);
+
+  // Free the target
+  for (int i = 0; i < ds->target->unique; i++) {
+    free(ds->target->classes[i]);
+  }
+  free(ds->target->classes);
+  free(ds->target);
+  free(ds);
   return NULL;
 };
 
@@ -326,16 +365,24 @@ void displayTable(Table *table, int samples) {
 void encode_Labels(Table *table, int id) {
   // Get the labels
   Value **labels = table->data[id];
+  char *to_free[table->height];
+
   // loop over the labels
   for (int i = 0; i < table->height; i++) {
     Value *label = labels[i];
     for (int j = 0; j < table->target->unique; j++) {
       if (strcmp(label->data.s, table->target->classes[j]) == 0) {
-	label->data.f = j;
 	label->type = FLOAT;
+	to_free[i] = label->data.s;
+	label->data.f = j;
 	break;
       }
     }
+  }
+
+  // Free the strings
+  for (int i = 0; i < table->height; i++) {
+    free(to_free[i]);
   }
 }
 
@@ -346,4 +393,15 @@ Table *allocTable() {
   table->data = NULL;
   table->features[0] = NULL;
   return table;
+}
+
+void freeTable(Table *table){
+  // free the data
+  for (int i = 0; i < table->width; i++) {
+    free(table->data[i]);
+  }
+  free(table->data);
+  // We dont free the target because it is from the dataset
+  // We dont free the features because it is from the dataset
+  free(table);
 }

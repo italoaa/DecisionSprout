@@ -24,12 +24,14 @@ void cb(void *s, size_t len, void *user_data) {
     Data data;
     DataType type = FLOAT;
     // Otherwise insert a value
+    // NOTE: Let the user define this
     if (ds->index == ds->width - 1) {
       // Its the last value, so its the class
       data.s = str;
       type = STRING;
     } else {
       data.f = atof(str);
+      free(str);
     }
     Value value;
     value.type = type;
@@ -74,10 +76,59 @@ DataSet *loadCsv(char *filename) {
   csv_free(&p);
   fclose(fp);
 
-  cleanMem(ds);
+  setUpMem(ds);
   removeTail(ds);
 
   return ds;
 }
 
 // VISUALIZATION
+
+void generate_dot(TreeNode *node, FILE *file) {
+    static int null_count = 0;
+
+    if (node->split != NULL) {
+        fprintf(file, "  node%p [label=\"Feature %d\\nThreshold %.2f\\nGini %.2f\"];\n",
+                (void *)node, node->split->feature, node->split->threshold, node->split->gini);
+    } else {
+        fprintf(file, "  node%p [label=\"Leaf\"];\n", (void *)node);
+    }
+
+    if (node->left) {
+        fprintf(file, "  node%p -> node%p [label=\"True\"];\n", (void *)node, (void *)node->left);
+        generate_dot(node->left, file);
+    } else {
+        fprintf(file, "  null%d [shape=point];\n", null_count);
+        fprintf(file, "  node%p -> null%d [label=\"True\"];\n", (void *)node, null_count);
+        null_count++;
+    }
+
+    if (node->right) {
+        fprintf(file, "  node%p -> node%p [label=\"False\"];\n", (void *)node, (void *)node->right);
+        generate_dot(node->right, file);
+    } else {
+        fprintf(file, "  null%d [shape=point];\n", null_count);
+        fprintf(file, "  node%p -> null%d [label=\"False\"];\n", (void *)node, null_count);
+        null_count++;
+    }
+}
+
+void export_tree_to_dot(TreeNode *root, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Error opening file for writing");
+        return;
+    }
+
+    fprintf(file, "digraph Tree {\n");
+    fprintf(file, "  node [shape=box];\n");
+
+    if (root) {
+        generate_dot(root, file);
+    } else {
+        fprintf(file, "\n");
+    }
+
+    fprintf(file, "}\n");
+    fclose(file);
+}

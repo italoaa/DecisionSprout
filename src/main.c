@@ -12,10 +12,15 @@ int main() {
   DataSet *ds = loadCsv(filename);
   setTarget(ds, 5);
   displayHeader(ds);
-  Table *table = buildTableFromIds(ds, (int[]){0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, 10);
+  Table *table = buildTableFromDS(ds);
   encode_Labels(table, table->target->id);
 
-  // Decision tree
+  /* Decision tree */
   TreeNode *tree = decide(allocNode(table));
+  export_tree_to_dot(tree, "tree.dot");
+  printf("Decision tree exported to tree.dot\n");
+
+  freeTree(tree);
+  freeDS(ds);
   return 0;
 }

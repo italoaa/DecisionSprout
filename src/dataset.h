@@ -39,7 +39,7 @@ typedef struct DataSet {
   struct Target *target; // Target feature
   struct Sample *tail; // end of the list
   struct Sample *sample; // start of the list
-  struct Sample *memory[]; // Memory for the samples
+  struct Sample **memory; // Memory for the samples
 } DataSet;
 
 DataSet *buildDS();
@@ -56,7 +56,7 @@ void displaySample(DataSet *ds, Sample *sample);
 
 Sample *addSample(DataSet *ds);
 
-void cleanMem(DataSet *ds);
+void setUpMem(DataSet *ds);
 
 void removeTail(DataSet *ds);
 
@@ -65,6 +65,8 @@ Sample *getSample(DataSet *ds, int id);
 void *insertHeader(DataSet *ds, char *header);
 
 void *insertValue(DataSet *ds, Value value);
+
+void *freeDS(DataSet *ds);
 
 // ==================== TABLES ====================
 
@@ -91,5 +93,7 @@ void displayTable(Table *table, int samples);
 void encode_Labels(Table *table, int id);
 
 Table *allocTable();
+
+void freeTable(Table *table);
 
 #endif

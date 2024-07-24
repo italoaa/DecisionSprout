@@ -29,6 +29,10 @@ Value **sortFeature(Table *table, int feature);
 
 Split *find_best_split(Table *table, int feature);
 
+void split(TreeNode *node);
+
 TreeNode *decide(TreeNode *root);
+
+void freeTree(TreeNode *node);
 
 #endif
