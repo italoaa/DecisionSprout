@@ -26,13 +26,13 @@ typedef struct Sample {
 } Sample;
 
 typedef struct Target {
-  int id;
-  int unique;
-  char **classes;
+  int id; // feature index for reference
+  int unique; // Numer of unique classes
+  char **classes; // the actual classes
 } Target;
 
 typedef struct DataSet {
-  char *features[MAX_FEATURES];
+  char *features[MAX_FEATURES]; // Features names
   int height; // Number of samples
   int width; // Number of features
   int index; // Current index for parsing
@@ -79,7 +79,7 @@ typedef struct TrTsSet {
 // Subset of the entire dataset
 typedef struct Table {
   // Data matrix first index is the feature, second index is the sample
-  // The value is a pointer to the float value in the dataset
+  // The value is a pointer to the value in the dataset
   Value ***data; 
 
   char *features[MAX_FEATURES];

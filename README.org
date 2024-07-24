@@ -1,5 +1,68 @@
 #+title: Decision Sprout
 
-This is a work in progress.
-
 This project is aimed to learn the core topics in machine learning and decision trees. Any contributions for improvement are welcome.
+
+** Project Structure
+The project is divided into 3 main parts:
+- Main: The main file that runs the project
+- Decision Tree: The decision tree implementation
+- Data: The data used for training and testing
+
+*** Data
+The data management part of the project was implemented in =dataset.c= and =dataset.h=. They represent the data in three main structures:
+
+- The =Value= structure that holds the value of an attribute allowing for multiple types of data:
+  #+BEGIN_SRC c
+  typedef union Data {
+    float f;
+    char *s;
+  } Data;
+
+  typedef enum DataType {
+    FLOAT,
+    STRING
+  } DataType;
+
+  typedef struct Value {
+    DataType type;
+    Data data;
+    int sampleID;
+  } Value;
+  #+END_SRC
+
+- The =Dataset= structure that holds the data and the labels
+  #+BEGIN_SRC c
+  // Holds The target feature
+  typedef struct Target {
+    int id;
+    int unique;
+    char **classes;
+  } Target;
+
+  typedef struct DataSet {
+    char *features[MAX_FEATURES]; // Features names
+    int height; // Number of samples
+    int width; // Number of features
+    int index; // Current index for parsing
+    struct Target *target; // Target feature
+    struct Sample *tail; // end of the list
+    struct Sample *sample; // start of the list
+    struct Sample **memory; // Memory for the samples
+  } DataSet;
+  #+END_SRC
+- The =Table= structure that holds data in a format more suitable for the decision tree
+  #+BEGIN_SRC c
+  // Subset of the entire dataset
+  typedef struct Table {
+    // Data matrix first index is the feature, second index is the sample
+    // The value is a pointer to the value in the dataset
+    Value ***data; 
+
+    char *features[MAX_FEATURES];
+    struct Target *target;
+    int height; // Number of samples
+    int width; // Number of features
+  } Table;
+  #+END_SRC
+*** Decision Tree
+In the implementation of the decision tree I used the following data structure to represent the tree:
