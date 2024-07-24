@@ -31,6 +31,8 @@ Accuracy: 0.93%
 #+end_example
 
 *** Caveats
+_Keep in mind this is a for learning project and is not intended for production use._
+
 Currently the project is very basic and does not have most of the features that a real decision tree would have. The following are some of the limitations of the project:
 - The target feature is assumed to be the last feature in the dataset
 - The project is only for classification and does not support regression
