@@ -14,6 +14,7 @@ typedef struct Split {
 typedef struct TreeNode {
   struct TreeNode *left;
   struct TreeNode *right;
+  int target;
   Split *split;
   Table *table;
 } TreeNode;
@@ -34,5 +35,11 @@ void split(TreeNode *node);
 TreeNode *decide(TreeNode *root);
 
 void freeTree(TreeNode *node);
+
+Value **predict(TreeNode *root, Table *table);
+
+Value *predictSample(TreeNode *node, Table *table, int sample);
+
+float accuracy(Value **predictions, int pred_size, DataSet *ds);
 
 #endif

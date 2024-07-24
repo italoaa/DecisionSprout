@@ -391,6 +391,7 @@ TrTsSet *splitTable(Table *table, float ratio) {
   set->train = buildTableFromIdsTable(table, train_ids, train_samples);
   set->test = buildTableFromIdsTable(table, test_ids, test_samples);
 
+  freeTable(table);
   return set;
 }
 

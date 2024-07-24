@@ -21,7 +21,7 @@ typedef struct Value {
 
 typedef struct Sample {
   struct Sample *next;
-  Value features[MAX_FEATURES]; // NOTE Only takes floats
+  Value features[MAX_FEATURES];
   int id;
 } Sample;
 

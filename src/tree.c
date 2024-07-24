@@ -253,6 +253,24 @@ TreeNode *allocNode(Table *table) {
 TreeNode *decide(TreeNode *root) {
   if (root->table->height < 2) {
     // Recursion base case
+    // loop over the target classes
+    int bestClass = 0;
+    int heighestCount = 0;
+    for (int i = 0; i < root->table->target->unique; i++) {
+      int count = 0;
+      // Count the number of samples for the class
+      for (int j = 0; j < root->table->height; j++) {
+	if (root->table->data[root->table->target->id][j]->data.f == i) {
+	  count++;
+	}
+      }
+      if (count > heighestCount) {
+	bestClass = i;
+	heighestCount = count;
+      }
+    }
+    // Set the target in this node to the class
+    root->target = bestClass;
     return root;
   }
 
@@ -295,6 +313,70 @@ TreeNode *decide(TreeNode *root) {
   root->right = decide(root->right);
 
   return root;
+}
+
+// Predicts the value of a sample
+Value *predictSample(TreeNode *node, Table *table, int sample) {
+  // If the node is a leaf
+  if (node->split == NULL) {
+    Value *value = (Value *)malloc(sizeof(Value));
+    if (!value) {
+      perror("Failed to allocate memory for value");
+      exit(EXIT_FAILURE);
+    }
+
+    value->type = FLOAT;
+    value->sampleID = table->data[0][sample]->sampleID;
+    value->data.f = node->target;
+    return value;
+  }
+
+  // Check the split
+  Split *split = node->split;
+  if (table->data[split->feature][sample]->data.f < split->threshold) {
+    // less than threshold
+    return predictSample(node->left, table, sample);
+  } else {
+    // more than threshold
+    return predictSample(node->right, table, sample);
+  }
+}
+
+// Predict, returns a list of predicted values each with sample id
+// to be used for evaluation
+Value **predict(TreeNode *root, Table *table) {
+  Value **predictions = (Value **)malloc(table->height * sizeof(Value *));
+  if (!predictions) {
+    perror("Failed to allocate memory for predictions");
+    exit(EXIT_FAILURE);
+  }
+
+  // Loop over the samples in the table
+  for (int i = 0; i < table->height; i++) {
+    // predict for each sample
+    predictions[i] = predictSample(root, table, i);
+  }
+
+  // print the predictions
+  return predictions;
+}
+
+// Calculate the accuracy of the predictions
+// pred_size is the number of predictions
+float accuracy(Value **predictions, int pred_size, DataSet *ds) {
+  int correct = 0;
+  for (int i = 0; i < pred_size; i++) {
+    int sampleID = predictions[i]->sampleID;
+    int targetID = ds->target->id;
+    int prediction = (int)predictions[i]->data.f;
+    // The labels in the data set are encoded already
+    int actual = (int)getSample(ds, sampleID)->features[targetID].data.f;
+    if (prediction == actual) {
+      correct++;
+    }
+  }
+
+  return (float)correct / pred_size;
 }
 
 void freeTree(TreeNode *node) {
