@@ -2,11 +2,50 @@
 
 This project is aimed to learn the core topics in machine learning and decision trees. Any contributions for improvement are welcome.
 
-** Project Structure
+** Results
+The project has been implemented and tested using the Iris dataset. The accuracy of the decision tree is =93%= on the test set.
+*** Running the Project
+#+begin_src sh :results output
+make clean
+make
+./decision_tree
+#+end_src
+
+#+RESULTS:
+#+begin_example
+rm -rf build decision_tree
+gcc -Wall -Wextra -std=c99 -g  -c src/dataset.c -o build/dataset.o
+gcc -Wall -Wextra -std=c99 -g  -c src/main.c -o build/main.o
+gcc -Wall -Wextra -std=c99 -g  -c src/tree.c -o build/tree.o
+gcc -Wall -Wextra -std=c99 -g  -c src/utils.c -o build/utils.o
+gcc -Wall -Wextra -std=c99 -g  -o decision_tree  build/dataset.o  build/main.o  build/tree.o  build/utils.o -lcsv
+[Id, SepalLengthCm, SepalWidthCm, PetalLengthCm, PetalWidthCm, Species, ]
+0 [1.000000, 5.100000, 3.500000, 1.400000, 0.200000, Iris-setosa, ]
+1 [2.000000, 4.900000, 3.000000, 1.400000, 0.200000, Iris-setosa, ]
+2 [3.000000, 4.700000, 3.200000, 1.300000, 0.200000, Iris-setosa, ]
+Split the Data Set into Training (105) and Test (45)
+Tree has been built using the training set
+Predictions have been made
+Calculating the accuracy... 
+Accuracy: 0.93%
+#+end_example
+
+*** Caveats
+Currently the project is very basic and does not have most of the features that a real decision tree would have. The following are some of the limitations of the project:
+- The target feature is assumed to be the last feature in the dataset
+- The project is only for classification and does not support regression
+- The project can only use the GINI index for splitting
+- The project does not have any pruning or stopping conditions
+- The project expects the data to be floats and the target to be a string
+** Project Structure and Implementation
 The project is divided into 3 main parts:
 - Main: The main file that runs the project
 - Decision Tree: The decision tree implementation
 - Data: The data used for training and testing
+
+For this project we have a main structure to store data called =DataSet=. This structure holds the actual read data from the csv. We then later convert this data into a =Table= structure that is more suitable for the decision tree. Any operations on the data are done on the =Table= structure in order to keep the original data intact.
+
+The tree is implemented using a binary tree structure. This tree structure uses the Table to generate the optimal split using the =GINI= index. This split is represented as a =Split= structure. Using this split we can generate the left and right child nodes of the tree. This process is repeated recursively until we reach a stopping condition.
 
 *** Data
 The data management part of the project was implemented in =dataset.c= and =dataset.h=. They represent the data in three main structures:
@@ -64,5 +103,33 @@ The data management part of the project was implemented in =dataset.c= and =data
     int width; // Number of features
   } Table;
   #+END_SRC
+- The =Sample= structure that holds the data for a single sample
+  #+BEGIN_SRC c
+  typedef struct Sample {
+    struct Sample *next;
+    Value features[MAX_FEATURES];
+    int id;
+  } Sample;
+  #+END_SRC
+
 *** Decision Tree
 In the implementation of the decision tree I used the following data structure to represent the tree:
+- The =TreeNode= structure that holds the node of the tree
+  #+BEGIN_SRC c
+  typedef struct TreeNode {
+    struct TreeNode *left; // Left child
+    struct TreeNode *right; // Right child
+    int target; // target for this node
+    Split *split; // split used for this node
+    Table *table; // table of values in this node
+  } TreeNode;
+  #+END_SRC
+
+- The =Split= structure that holds the split information
+  #+BEGIN_SRC c
+  typedef struct Split {
+    int feature;
+    float threshold;
+    float gini;
+  } Split;
+  #+END_SRC

@@ -12,11 +12,11 @@ typedef struct Split {
 } Split;
 
 typedef struct TreeNode {
-  struct TreeNode *left;
-  struct TreeNode *right;
-  int target;
-  Split *split;
-  Table *table;
+  struct TreeNode *left; // Left child
+  struct TreeNode *right; // Right child
+  int target; // target for this node
+  Split *split; // split used for this node
+  Table *table; // table of values in this node
 } TreeNode;
 
 
