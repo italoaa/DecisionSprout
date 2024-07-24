@@ -343,6 +343,57 @@ Table *buildTableFromIdsTable(Table *table, int ids[], int height) {
   return newTable;
 }
 
+#include <time.h>
+void shuffleTable(Table *table) {
+  int height = table->height;
+  int width = table->width;
+  Value ***data = table->data;
+  srand(time(NULL));
+  // Starts from the last row
+  for (int i = height - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    // This is the index of the row to swap
+    int j = rand() % (i + 1);
+
+    // Swap rows[i] and rows[j] directly
+    for (int k = 0; k < width; k++) {
+      // Store the value of rows[i]
+      Value *temp = data[k][i];
+      data[k][i] = data[k][j];
+      data[k][j] = temp;
+    }
+  } 
+}
+
+// Split the table into a train and test set
+TrTsSet *splitTable(Table *table, float ratio) {
+  TrTsSet *set = (TrTsSet *)malloc(sizeof(TrTsSet));
+  set->train = allocTable();
+  set->test = allocTable();
+
+  // Calculate the number of samples for the train set
+  int train_samples = table->height * ratio;
+  int test_samples = table->height - train_samples;
+
+  // Loop over the first train_samples to get their ids
+  int train_ids[train_samples];
+  for (int i = 0; i < train_samples; i++) {
+    train_ids[i] = table->data[0][i]->sampleID;
+  }
+
+  // Loop over the last test_samples to get their ids
+  int test_ids[test_samples];
+  for (int i = 0; i < test_samples; i++) {
+    test_ids[i] = table->data[0][train_samples + i]->sampleID;
+  }
+
+  // Build the train and test tables
+  set->train = buildTableFromIdsTable(table, train_ids, train_samples);
+  set->test = buildTableFromIdsTable(table, test_ids, test_samples);
+
+  return set;
+}
+
 void displayTable(Table *table, int samples) {
   if (samples > table->height) {
     // Error

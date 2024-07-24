@@ -13,14 +13,17 @@ int main() {
   setTarget(ds, 5);
   displayHeader(ds);
   Table *table = buildTableFromDS(ds);
+  shuffleTable(table);
   encode_Labels(table, table->target->id);
 
-  /* Decision tree */
-  TreeNode *tree = decide(allocNode(table));
-  export_tree_to_dot(tree, "tree.dot");
-  printf("Decision tree exported to tree.dot\n");
+  TrTsSet *sets = splitTable(table, 0.7);
 
-  freeTree(tree);
+  // Decide on the training set
+  TreeNode *tree = decide(allocNode(sets->train));
+  /* export_tree_to_dot(tree, "tree.dot"); */
+  /* printf("Decision tree exported to tree.dot\n"); */
+
+  /* freeTree(tree); */
   freeDS(ds);
   return 0;
 }

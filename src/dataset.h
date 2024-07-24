@@ -70,6 +70,12 @@ void *freeDS(DataSet *ds);
 
 // ==================== TABLES ====================
 
+// Holds the table for test and train
+typedef struct TrTsSet {
+  struct Table *train;
+  struct Table *test;
+} TrTsSet;
+
 // Subset of the entire dataset
 typedef struct Table {
   // Data matrix first index is the feature, second index is the sample
@@ -82,11 +88,15 @@ typedef struct Table {
   int width; // Number of features
 } Table;
 
+TrTsSet *splitTable(Table *table, float ratio);
+
 Table *buildTableFromDS(DataSet *ds);
 
 Table *buildTableFromIds(DataSet *ds, int ids[], int height);
 
 Table *buildTableFromIdsTable(Table *table, int ids[], int height);
+
+void shuffleTable(Table *table);
 
 void displayTable(Table *table, int samples);
 
